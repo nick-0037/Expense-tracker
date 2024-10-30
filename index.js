@@ -4,9 +4,40 @@ const path = require('path')
 
 const program = new Command()
 const filePath = path.join(__dirname, 'expenses.json')
+const budgetFilePath = path.join(__dirname, 'budget.json')
 
 const loadExpenses = () => JSON.parse(fs.readFileSync(filePath, 'utf-8') || '[]')
 const saveExpenses = (data) => fs.writeFileSync(filePath, JSON.stringify(data))
+
+const loadBudget = () => JSON.parse(fs.readFileSync(budgetFilePath, 'utf-8') || {})
+const saveBudget = (data) => fs.writeFileSync(budgetFilePath, JSON.stringify(data)) 
+
+program
+  .command('set-budget')
+  .description('Set a monthly budget')
+  .option('--month <month>', 'Month for the budget (1-12)')
+  .option('--amount <amount>', 'Amount of the budget')
+  .action((options) => {
+    const expenses = loadExpenses()
+    const budget = loadBudget()
+    let filteredExpenses = expenses
+
+    if(options.month) {
+      const month = parseInt(options.month, 10)
+      const amount = parseFloat(options.amount)
+
+      filteredExpenses = filteredExpenses.filter(e => new Date(e.date).getMonth() + 1 === options.month)
+      const totalExpensesForMonth = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
+      
+      budget[month] = amount
+      saveBudget(budget)
+      console.log(`Budget set for month ${month}: $${amount}`);
+
+      if(totalExpensesForMonth > amount) {
+        console.warn(`Warning: Current expenses ($${totalExpensesForMonth}) exceed the budget of $${amount} for month ${month}`)
+      }
+    }
+  })
 
 program
   .command('add')
@@ -80,12 +111,17 @@ program
 
 program
   .command('list')
-  .option('List all expenses')
-  .action(() => {
-    const expenses = loadExpenses()
+  .description('List all expenses')
+  .option('--category <category>', 'Filter by category')
+  .action((options) => {
+    let expenses = loadExpenses()
+
+    if(options.category) {
+      expenses = expenses.filter(e => e.category === options.category)
+    }
     console.log('ID\tDate\t\tDescription\tAmount')
     expenses.forEach(e => {
-      console.log(`${e.id}\t${e.date}\t${e.description}\t\t${e.amount}`)
+      console.log(`${e.id}\t${e.date}\t${e.description}\t\t${e.amount}\t${e.category}`)
     });
   })
 
