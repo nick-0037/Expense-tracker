@@ -14,6 +14,13 @@ program
   .option('--description <description>', 'Description of the expense')
   .option('--amount <amount>', 'Amount of the expense')
   .action((options) => {
+    const amount = parseFloat(options.amount)
+
+    if(isNaN(amount) || amount <= 0) {
+      console.error('Error: The amount must be a positive number')
+      return
+    }
+
     const expenses = loadExpenses()
     const newExpense = {
       id: expenses.length + 1,
@@ -80,17 +87,21 @@ program
   .description('Show total expenses')
   .option('--month <month>', 'Filter by month (1-12)')
   .action((options) => {
+    const month = parseInt(options.month, 10)
+    if (options.month && (isNaN(month) || month < 1 || month > 12)) {
+      console.error('Error: The month must be a number between 1 and 12.');
+      return;
+    }
+    
     const expenses = loadExpenses()
     let filteredExpenses = expenses
-
+    
     if(options.month) {
-      const month = parseInt(options.month, 10)
       filteredExpenses = expenses.filter(e => new Date(e.date).getMonth() + 1 === month)
-
-      console.log(`Total expenses for ${new Date(0, month - 1).toLocaleString('default', { month: 'long'})}: $${filteredExpenses.reduce((sum, e) => sum + e.amount, 0)}`)
-    } else {
-      console.log(`Total expenses: $${filteredExpenses.reduce((sum, e) => sum + e.amount, 0)}`);
     }
+
+    const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
+    console.log(`Total expenses${options.month ? ` for ${new Date(0, month - 1).toLocaleString('default', { month: 'long' })}` : ''}: $${total}`)
   })
 
 
