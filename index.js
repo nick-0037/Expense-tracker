@@ -13,6 +13,7 @@ program
   .description('Add a new expense')
   .option('--description <description>', 'Description of the expense')
   .option('--amount <amount>', 'Amount of the expense')
+  .option('--category <category>', 'Category of the expense')
   .action((options) => {
     const amount = parseFloat(options.amount)
 
@@ -21,12 +22,15 @@ program
       return
     }
 
+    
+
     const expenses = loadExpenses()
     const newExpense = {
       id: expenses.length + 1,
       date: new Date().toISOString().slice(0, 10),
       description: options.description,
-      amount: parseFloat(options.amount)
+      amount: parseFloat(options.amount),
+      category: options.category || 'Uncategorized'
     }
 
     expenses.push(newExpense)
@@ -59,6 +63,11 @@ program
   .description('Delete an existing expense')
   .option('--id <id>', 'ID of the expense to delete')
   .action((options) => {
+    const expenseId = parent(options.id, 10)
+    if(isNaN(expenseId) || expenseId <= 0) {
+      console.log('Error: Invalid expense ID.')
+    }
+
     let expenses = loadExpenses()
     const initialLength = expenses.length
     expenses = expenses.filter(e => e.id !== options.id)
@@ -66,8 +75,6 @@ program
     if(expenses.length < initialLength) {
       saveExpenses(expenses)
       console.log(`Expense with ID: ${options.id} deleted successfully`)
-    } else {
-      console.log(`Expense With ID: ${options.id} not found`)
     }
   })
 
