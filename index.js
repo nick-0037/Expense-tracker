@@ -9,7 +9,7 @@ const budgetFilePath = path.join(__dirname, 'budget.json')
 const loadExpenses = () => JSON.parse(fs.readFileSync(filePath, 'utf-8') || '[]')
 const saveExpenses = (data) => fs.writeFileSync(filePath, JSON.stringify(data))
 
-const loadBudget = () => JSON.parse(fs.readFileSync(budgetFilePath, 'utf-8') || {})
+const loadBudget = () => JSON.parse(fs.readFileSync(budgetFilePath, 'utf-8') || '{}')
 const saveBudget = (data) => fs.writeFileSync(budgetFilePath, JSON.stringify(data)) 
 
 program
@@ -25,6 +25,11 @@ program
     if(options.month) {
       const month = parseInt(options.month, 10)
       const amount = parseFloat(options.amount)
+
+      if(isNaN(month) || amount < 0) {
+        console.error('Please enter a valid, positive amount')
+        return
+      }
 
       filteredExpenses = filteredExpenses.filter(e => new Date(e.date).getMonth() + 1 === options.month)
       const totalExpensesForMonth = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
