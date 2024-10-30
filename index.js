@@ -12,6 +12,19 @@ const saveExpenses = (data) => fs.writeFileSync(filePath, JSON.stringify(data))
 const loadBudget = () => JSON.parse(fs.readFileSync(budgetFilePath, 'utf-8') || '{}')
 const saveBudget = (data) => fs.writeFileSync(budgetFilePath, JSON.stringify(data)) 
 
+const convertToCSV = (data) => {
+  const header = 'Date,Description,Amount,Category\n'
+  const rows = data.map(e => `${e.date},${e.description},${e.amount},${e.category}`).join('\n')
+  return header + rows
+} 
+
+const exportExpensesToCSV = (outputPath) => {
+  const expenses = loadExpenses()
+  const csvData = convertToCSV(expenses)
+  fs.writeFileSync(outputPath, csvData)
+  console.log(`Expenses have been exported to ${outputPath}`)
+}
+
 program
   .command('set-budget')
   .description('Set a monthly budget')
@@ -151,6 +164,15 @@ program
     const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
     console.log(`Total expenses${options.month ? ` for ${new Date(0, month - 1).toLocaleString('default', { month: 'long' })}` : ''}: $${total}`)
   })
+
+program
+  .command('export-expenses')
+  .description('Export expenses to CSV file')
+  .option('--output <output>', 'Output CSV file path')
+  .action((options) => {
+    const outputPath = options.output || 'expenses.csv'
+    exportExpensesToCSV(outputPath)
+  }) 
 
 
 program.parse(process.argv)
