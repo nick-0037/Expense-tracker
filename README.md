@@ -1,6 +1,7 @@
 # Expense tracker
 
 Expense Tracker is a command-line-interface (CLI) aaplication for managing your monthly expenses. It allows you to record expenses, set a budget, and export your expenses to a CSV file for easier analysis.
+https://roadmap.sh/projects/expense-tracker
 
 ## Features
 
